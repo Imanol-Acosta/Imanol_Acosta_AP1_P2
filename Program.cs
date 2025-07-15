@@ -1,5 +1,6 @@
 using Imanol_Acosta_AP1_P2.Components;
 using Imanol_Acosta_AP1_P2.DAL;
+using Imanol_Acosta_AP1_P2.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,12 @@ builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+var Constr = builder.Configuration.GetConnectionString("ConStr");
 
+builder.Services.AddDbContextFactory<Contexto>(options =>
+    options.UseSqlServer(Constr));
+
+builder.Services.AddScoped<Imanol_Acosta_AP1_P2.Services.ProductoService>();
 
 var app = builder.Build();
 
