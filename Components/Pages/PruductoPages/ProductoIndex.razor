@@ -1,0 +1,60 @@
+﻿@page "/Producto/Index"
+@inject ProductoService productosService
+@rendermode InteractiveServer
+@using Imanol_Acosta_AP1_P2.Models
+@using Imanol_Acosta_AP1_P2.Services
+
+<PageTitle>Productos</PageTitle>
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h5 class="card-title">Productos</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead class="text-center">
+                    <tr>
+                        <th><strong>ID</strong></th>
+                        <th><strong>Descripción</strong></th>
+                        <th><strong>Peso (kg)</strong></th>
+                        <th><strong>Existencia</strong></th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+                    @foreach (var producto in productos)
+                    {
+                        <tr>
+                            <td>@producto.ProductoID</td>
+                            <td>@producto.Descripcion</td>
+                            <td>@producto.Peso.ToString("N2")</td>
+                            <td>@producto.Existencia.ToString("N2")</td>
+                            
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@code {
+    public List<Producto> productos { get; set; } = new List<Producto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            productos = await productosService.Listar(p => p.ProductoID > 0);
+        }
+        catch (Exception ex)
+        {
+            
+            productos = new List<Producto>
+            {
+                new Producto { ProductoID = 1, Descripcion = "Mani", Peso = 5, Existencia = 100, EsCompuesto = false },
+                new Producto { ProductoID = 2, Descripcion = "Pistacho", Peso = 10, Existencia = 50, EsCompuesto = true }
+            };
+            Console.WriteLine($"Error al cargar productos: {ex.Message}");
+        }
+    }
+}

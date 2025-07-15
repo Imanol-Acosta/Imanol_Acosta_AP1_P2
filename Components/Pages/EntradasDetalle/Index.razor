@@ -1,0 +1,221 @@
+﻿@page "/Entrada/Index"
+@inject EntradaService entradaService
+@inject ProductoService productoService
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+@using Imanol_Acosta_AP1_P2.Models
+@using Imanol_Acosta_AP1_P2.Services
+
+<PageTitle>Índice de Entradas</PageTitle>
+
+<div class="container">
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h5 class="card-title">Entradas</h5>
+        </div>
+
+        <div class="card-body">
+           
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="metodoBusqueda" class="form-label"><strong>Método de Búsqueda</strong></label>
+                    <select class="form-select" @bind="MetodoBusqueda">
+                        <option value="ID">Buscar por ID</option>
+                        <option value="Concepto">Buscar por Concepto</option>
+                        <option value="Producto">Buscar por Producto</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="inputBusqueda" class="form-label"><strong>Buscar</strong></label>
+                    @if (MetodoBusqueda == "ID")
+                    {
+                        <InputNumber class="form-control" @bind-Value="BusquedaId" placeholder="Ingrese ID..." />
+                    }
+                    else if (MetodoBusqueda == "Concepto")
+                    {
+                        <InputText class="form-control" @bind-Value="BusquedaConcepto" placeholder="Ingrese concepto..." />
+                    }
+                    else if (MetodoBusqueda == "Producto")
+                    {
+                        <select class="form-select" @bind="BusquedaProductoId">
+                            <option value="0">Seleccione un producto...</option>
+                            @foreach (var producto in productos)
+                            {
+                                <option value="@producto.ProductoID">@producto.Descripcion</option>
+                            }
+                        </select>
+                    }
+                </div>
+-->
+                <div class="col-md-4">
+                    <label class="form-label"><strong>Filtrar por Fecha</strong></label>
+                    <div class="d-flex gap-2">
+                        <InputDate class="form-control" @bind-Value="FechaInicio" placeholder="Desde" />
+                        <InputDate class="form-control" @bind-Value="FechaFin" placeholder="Hasta" />
+                    </div>
+                </div>
+
+                <div class="col-md-1 d-flex align-items-end">
+                    <button class="btn btn-outline-primary w-100" @onclick="FiltrarEntradas">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+
+                <div class="col-md-1 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary w-100" @onclick="RestablecerFiltros">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
+            </div>
+
+            @if (entradasFiltradas.Count == 0)
+            {
+                <div class="alert alert-warning text-center" role="alert">
+                    No hay entradas registradas con los filtros aplicados.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="text-center">
+                            <tr>
+                                <th><strong>ID</strong></th>
+                                <th><strong>Fecha</strong></th>
+                                <th><strong>Concepto</strong></th>
+                                <th><strong>Producto</strong></th>
+                                <th><strong>Peso Total (kg)</strong></th>
+                                <th><strong>Cantidad Producida</strong></th>
+                                <th><strong>Editar</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            @foreach (var entrada in entradasFiltradas)
+                            {
+                                <tr>
+                                    <td>@entrada.EntradaId</td>
+                                    <td>@entrada.Fecha.ToShortDateString()</td>
+                                    <td>@entrada.Concepto</td>
+                                    <td>@ObtenerNombreProducto(entrada.IdProducido)</td>
+                                    <td>@entrada.PesoTotal.ToString("N2")</td>
+                                    <td>@entrada.CantidadProducida.ToString("N2")</td>
+                                    <td>
+                                        <a href="/Entrada/Edit/@entrada.EntradaId" class="btn btn-outline-primary bi bi-pencil-square"></a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div class="card-footer">
+            <div class="row">
+                <div class="col text-start">
+                    <strong>Número de Entradas:</strong> @NumeroEntradas
+                </div>
+                <div class="col text-center">
+                    <strong>Peso Total:</strong> @PesoTotalAcumulado.ToString("N2") kg
+                </div>
+                <div class="col text-end">
+                    <strong>Cantidad Total:</strong> @CantidadTotalAcumulada.ToString("N2")
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a href="/Entrada/Create" class="btn btn-primary">
+                    <span class="bi bi-plus-square"></span> Crear Nueva Entrada
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public List<Entrada> entradas { get; set; } = new List<Entrada>();
+    public List<Entrada> entradasFiltradas { get; set; } = new List<Entrada>();
+    public List<Producto> productos { get; set; } = new List<Producto>();
+
+    public string MetodoBusqueda { get; set; } = "ID";
+    public int BusquedaId { get; set; }
+    public string BusquedaConcepto { get; set; } = string.Empty;
+    public int BusquedaProductoId { get; set; }
+    public DateTime? FechaInicio { get; set; }
+    public DateTime? FechaFin { get; set; }
+
+    public int NumeroEntradas { get; set; } = 0;
+    public double PesoTotalAcumulado { get; set; } = 0;
+    public double CantidadTotalAcumulada { get; set; } = 0;
+
+    public string ErrorMessage { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            entradas = await entradaService.Listar(e => e.EntradaId > 0);
+            productos = await productoService.Listar(p => p.ProductoID > 0);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error al cargar datos: {ex.Message}";
+
+            entradas = new List<Entrada>
+            {
+                new Entrada { EntradaId = 1, Fecha = DateTime.Now, Concepto = "Entrada de prueba", PesoTotal = 100, IdProducido = 1, CantidadProducida = 50 },
+                new Entrada { EntradaId = 2, Fecha = DateTime.Now.AddDays(-1), Concepto = "Segunda entrada", PesoTotal = 200, IdProducido = 2, CantidadProducida = 75 }
+            };
+            productos = new List<Producto>
+            {
+                new Producto { ProductoID = 1, Descripcion = "Maní", Peso = 5, Existencia = 100, EsCompuesto = false },
+                new Producto { ProductoID = 2, Descripcion = "Pistacho", Peso = 10, Existencia = 50, EsCompuesto = true }
+            };
+        }
+
+        entradasFiltradas = new List<Entrada>(entradas);
+        CalcularResumen();
+    }
+
+    private void CalcularResumen()
+    {
+        NumeroEntradas = entradasFiltradas.Count;
+        PesoTotalAcumulado = entradasFiltradas.Sum(e => e.PesoTotal);
+        CantidadTotalAcumulada = entradasFiltradas.Sum(e => e.CantidadProducida);
+    }
+
+    private void FiltrarEntradas()
+    {
+        entradasFiltradas = entradas
+            .Where(e =>
+                (MetodoBusqueda == "ID" && (BusquedaId == 0 || e.EntradaId == BusquedaId)) ||
+                (MetodoBusqueda == "Concepto" && (string.IsNullOrWhiteSpace(BusquedaConcepto) || e.Concepto.Contains(BusquedaConcepto, StringComparison.OrdinalIgnoreCase))) ||
+                (MetodoBusqueda == "Producto" && (BusquedaProductoId == 0 || e.IdProducido == BusquedaProductoId))
+            )
+            .Where(e =>
+                (!FechaInicio.HasValue || e.Fecha >= FechaInicio.Value) &&
+                (!FechaFin.HasValue || e.Fecha <= FechaFin.Value)
+            )
+            .ToList();
+
+        CalcularResumen();
+    }
+
+    private void RestablecerFiltros()
+    {
+        BusquedaId = 0;
+        BusquedaConcepto = string.Empty;
+        BusquedaProductoId = 0;
+        FechaInicio = null;
+        FechaFin = null;
+        MetodoBusqueda = "ID";
+        entradasFiltradas = new List<Entrada>(entradas);
+        CalcularResumen();
+    }
+
+    private string ObtenerNombreProducto(int productoId)
+    {
+        var producto = productos.FirstOrDefault(p => p.ProductoID == productoId);
+        return producto?.Descripcion ?? "Producto no encontrado";
+    }
+}

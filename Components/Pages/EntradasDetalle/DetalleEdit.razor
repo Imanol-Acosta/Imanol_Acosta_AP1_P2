@@ -1,0 +1,122 @@
+﻿@page "/Entrada/Edit/{EntradaId:int}"
+@inject EntradaService entradaService
+@inject ProductoService productoService
+@inject NavigationManager navigationManager
+@inject IJSRuntime JS
+@using Imanol_Acosta_AP1_P2.Models
+@using Imanol_Acosta_AP1_P2.Services
+
+@rendermode InteractiveServer
+
+<PageTitle>Editar Entrada</PageTitle>
+
+@if (entrada == null)
+{
+    <div class="alert alert-danger">Entrada no encontrada.</div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="card shadow-lg">
+            <div class="card-header">
+                <h5>Editar Entrada</h5>
+            </div>
+
+            <div class="card-body">
+                <EditForm Model="entrada" OnValidSubmit="Guardar">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3">
+                        <label class="form-label">Fecha</label>
+                        <InputDate class="form-control" @bind-Value="entrada.Fecha" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Concepto</label>
+                        <InputText class="form-control" @bind-Value="entrada.Concepto" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Producto Producido</label>
+                        <select class="form-select" @bind="entrada.IdProducido">
+                            <option value="0">Seleccione un producto...</option>
+                            @foreach (var producto in productos)
+                            {
+                                <option value="@producto.ProductoID">@producto.Descripcion</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Peso Total (kg)</label>
+                        <InputNumber class="form-control" @bind-Value="entrada.PesoTotal" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad Producida</label>
+                        <InputNumber class="form-control" @bind-Value="entrada.CantidadProducida" />
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-save"></i> Guardar
+                        </button>
+
+                        <button type="button" class="btn btn-danger" @onclick="() => Eliminar(entrada.EntradaId)">
+                            <i class="bi bi-trash"></i> Eliminar
+                        </button>
+
+                        <a href="/Entrada/Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int EntradaId { get; set; }
+
+    private Entrada? entrada;
+    private List<Producto> productos = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        entrada = await entradaService.Buscar(EntradaId);
+        productos = await productoService.Listar(p => true);
+    }
+
+    private async Task Guardar()
+    {
+        bool exito = await entradaService.Guardar(entrada!);
+        if (exito)
+        {
+            navigationManager.NavigateTo("/Entrada/Index");
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "No se pudo guardar la entrada.");
+        }
+    }
+
+    private async Task Eliminar(int entradaId)
+    {
+        bool confirmado = await JS.InvokeAsync<bool>("confirm", "¿Está seguro de eliminar esta entrada?");
+        if (confirmado)
+        {
+            bool eliminado = await entradaService.Eliminar(entradaId);
+            if (eliminado)
+            {
+                navigationManager.NavigateTo("/Entrada/Index");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", "No se pudo eliminar la entrada.");
+            }
+        }
+    }
+}
