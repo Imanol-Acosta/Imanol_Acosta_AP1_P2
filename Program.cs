@@ -1,13 +1,14 @@
 using Imanol_Acosta_AP1_P2.Components;
 using Imanol_Acosta_AP1_P2.DAL;
 using Imanol_Acosta_AP1_P2.Services;
-using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
 
 builder.Services.AddRazorPages();
 
@@ -19,6 +20,7 @@ builder.Services.AddDbContextFactory<Contexto>(options =>
 // Registro de servicios personalizados
 builder.Services.AddScoped<ProductoService>();
 builder.Services.AddScoped<EntradaService>();
+
 
 var app = builder.Build();
 
