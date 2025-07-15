@@ -50,4 +50,16 @@ public class ProductoService(IDbContextFactory<Contexto> DbFactory)
         await using var contexto = await DbFactory.CreateDbContextAsync();
         return await contexto.Productos.AsNoTracking().Where(criterio).ToListAsync();
     }
+
+    public async Task<bool> Eliminar(int productoID)
+    {
+        await using var contexto = await DbFactory.CreateDbContextAsync();
+        var producto = await contexto.Productos.FindAsync(productoID);
+        if (producto == null)
+        {
+            return false;
+        }
+        contexto.Productos.Remove(producto);
+        return await contexto.SaveChangesAsync() > 0;
+    }
 }
