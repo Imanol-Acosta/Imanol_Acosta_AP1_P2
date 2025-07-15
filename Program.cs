@@ -1,6 +1,9 @@
 using Imanol_Acosta_AP1_P2.Components;
+<<<<<<< HEAD
 using Imanol_Acosta_AP1_P2.DAL;
 using Microsoft.EntityFrameworkCore;
+=======
+>>>>>>> e68a926ae3039d2226a2d3f355e22311a9a6183d
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+<<<<<<< HEAD
 
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
@@ -15,6 +19,8 @@ builder.Services.AddRazorComponents()
 
 
 
+=======
+>>>>>>> e68a926ae3039d2226a2d3f355e22311a9a6183d
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -34,4 +40,8 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+<<<<<<< HEAD
 app.Run();
+=======
+app.Run();
+>>>>>>> e68a926ae3039d2226a2d3f355e22311a9a6183d

@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+<<<<<<< HEAD
   <ItemGroup>
     <Folder Include="Services\" />
   </ItemGroup>
@@ -19,4 +20,6 @@
     </PackageReference>
   </ItemGroup>
 
+=======
+>>>>>>> e68a926ae3039d2226a2d3f355e22311a9a6183d
 </Project>
